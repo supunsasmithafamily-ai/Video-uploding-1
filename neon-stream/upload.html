@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon Stream | Upload</title>
+<style>
+  :root { --neon-blue: #00f3ff; --neon-pink: #ff00ff; --bg-dark: #09090b; }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg-dark); color: #fff; font-family: 'Segoe UI', sans-serif;
+    display: flex; flex-direction: column; align-items: center; padding: 40px 20px;
+  }
+  h1 { text-shadow: 0 0 10px var(--neon-blue); }
+  .box {
+    background: #111; border: 1px solid var(--neon-pink); border-radius: 12px;
+    padding: 30px; width: 100%; max-width: 420px;
+  }
+  input[type=text], input[type=file] {
+    width: 100%; padding: 10px; margin-bottom: 15px;
+    background: #000; border: 1px solid var(--neon-blue); color: #fff; border-radius: 6px;
+  }
+  button {
+    background: transparent; color: var(--neon-blue); border: 2px solid var(--neon-blue);
+    padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;
+    text-transform: uppercase; width: 100%;
+  }
+  button:hover { background: var(--neon-blue); color: #000; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  #status { margin-top: 15px; font-size: 0.9rem; min-height: 1.2em; }
+  #progressWrap { width: 100%; background: #222; border-radius: 6px; margin-top: 10px; display: none; }
+  #progressBar { height: 8px; width: 0%; background: var(--neon-pink); border-radius: 6px; transition: width 0.2s; }
+</style>
+</head>
+<body>
+  <h1>UPLOAD VIDEO</h1>
+  <div class="box">
+    <input type="text" id="title" placeholder="Video title" />
+    <input type="file" id="file" accept="video/mp4,video/webm,video/quicktime" />
+    <div id="progressWrap"><div id="progressBar"></div></div>
+    <button id="uploadBtn" onclick="doUpload()">Upload</button>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    async function doUpload() {
+      const fileInput = document.getElementById('file');
+      const titleInput = document.getElementById('title');
+      const status = document.getElementById('status');
+      const btn = document.getElementById('uploadBtn');
+      const progressWrap = document.getElementById('progressWrap');
+      const progressBar = document.getElementById('progressBar');
+
+      const file = fileInput.files[0];
+      if (!file) {
+        status.textContent = 'Choose a video file first.';
+        return;
+      }
+
+      btn.disabled = true;
+      progressWrap.style.display = 'block';
+      progressBar.style.width = '0%';
+
+      try {
+        // Step 1: ask our API for a presigned R2 upload URL
+        status.textContent = 'Requesting upload URL...';
+        const urlRes = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'get-upload-url',
+            filename: file.name,
+            contentType: file.type,
+          }),
+        });
+        const { uploadUrl, publicUrl, error } = await urlRes.json();
+        if (error) throw new Error(error);
+
+        // Step 2: upload the file directly to R2 using XHR so we get progress
+        status.textContent = 'Uploading...';
+        await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', uploadUrl);
+          xhr.setRequestHeader('Content-Type', file.type);
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              progressBar.style.width = Math.round((e.loaded / e.total) * 100) + '%';
+            }
+          };
+          xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error('Upload failed: ' + xhr.status));
+          xhr.onerror = () => reject(new Error('Network error during upload'));
+          xhr.send(file);
+        });
+
+        // Step 3: confirm — save title + public URL to Firestore
+        status.textContent = 'Saving...';
+        const confirmRes = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'confirm',
+            title: titleInput.value.trim() || file.name,
+            url: publicUrl,
+          }),
+        });
+        const confirmData = await confirmRes.json();
+        if (confirmData.error) throw new Error(confirmData.error);
+
+        status.textContent = 'Done! Video uploaded: ' + publicUrl;
+        fileInput.value = '';
+        titleInput.value = '';
+      } catch (err) {
+        status.textContent = 'Upload failed: ' + err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

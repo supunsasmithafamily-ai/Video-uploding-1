@@ -1,0 +1,12 @@
+{
+  "name": "neon-stream",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Single-file neon video streaming frontend with Firebase auth/Firestore subscriptions, video.js + VAST ads, and Stripe-gated downloads.",
+  "dependencies": {
+    "firebase-admin": "^12.1.0",
+    "stripe": "^15.7.0",
+    "@aws-sdk/client-s3": "^3.600.0",
+    "@aws-sdk/s3-request-presigner": "^3.600.0"
+  }
+}

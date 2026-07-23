@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon Stream | Video Platform</title>
+
+<!-- Firebase SDKs (compat build, simplest for a single-file app) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics-compat.js"></script>
+
+<!-- Video.js -->
+<link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+
+<style>
+  :root {
+    --neon-blue: #00f3ff;
+    --neon-pink: #ff00ff;
+    --bg-dark: #09090b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background-color: var(--bg-dark);
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    color: #fff;
+    text-shadow: 0 0 5px var(--neon-blue), 0 0 15px var(--neon-blue), 0 0 30px var(--neon-blue);
+    margin-bottom: 10px;
+    font-size: 2.5rem;
+    letter-spacing: 2px;
+  }
+  #authBar {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+  #authBar span { align-self: center; color: var(--neon-blue); margin-right: 10px; font-size: .9rem; }
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    width: 100%;
+    max-width: 1200px;
+  }
+  .video-card {
+    background: #111;
+    border: 1px solid var(--neon-pink);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.2), inset 0 0 10px rgba(255, 0, 255, 0.1);
+    transition: all 0.3s ease-in-out;
+  }
+  .video-card:hover {
+    box-shadow: 0 0 20px var(--neon-pink), inset 0 0 15px var(--neon-pink);
+    transform: translateY(-5px);
+  }
+  button, .neon-btn {
+    background: transparent;
+    color: var(--neon-blue);
+    border: 2px solid var(--neon-blue);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+    transition: 0.3s;
+    margin-top: 10px;
+    width: 100%;
+    font-size: .85rem;
+  }
+  button:hover { background: var(--neon-blue); color: var(--bg-dark); box-shadow: 0 0 20px var(--neon-blue); }
+  .btn-download { border-color: var(--neon-pink); color: var(--neon-pink); box-shadow: 0 0 10px rgba(255, 0, 255, 0.3); }
+  .btn-download:hover { background: var(--neon-pink); color: var(--bg-dark); box-shadow: 0 0 20px var(--neon-pink); }
+  .btn-small { width: auto; padding: 8px 14px; margin-top: 0; }
+
+  #player-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  .player-container {
+    border: 2px solid var(--neon-blue);
+    box-shadow: 0 0 30px var(--neon-blue);
+    padding: 10px;
+    border-radius: 10px;
+    background: #000;
+    position: relative;
+    width: 90vw;
+    max-width: 720px;
+  }
+  .close-btn {
+    position: absolute;
+    top: -20px; right: -20px;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: red;
+    color: white;
+    border: none;
+    box-shadow: 0 0 15px red;
+    cursor: pointer;
+    z-index: 1001;
+    margin: 0;
+  }
+
+  /* Auth modal */
+  #auth-modal {
+    display: none;
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 1100;
+    justify-content: center; align-items: center;
+  }
+  .auth-box {
+    background: #111;
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 20px var(--neon-blue);
+    padding: 30px;
+    border-radius: 12px;
+    width: 90vw;
+    max-width: 360px;
+    position: relative;
+  }
+  .auth-box input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    background: #000;
+    border: 1px solid var(--neon-pink);
+    color: #fff;
+    border-radius: 6px;
+  }
+  .auth-toggle { font-size: .8rem; text-align: center; margin-top: 10px; cursor: pointer; color: var(--neon-blue); }
+  #authError { color: var(--neon-pink); font-size: .8rem; min-height: 1em; }
+</style>
+</head>
+<body>
+
+<h1>NEON STREAM</h1>
+
+<div id="authBar">
+  <span id="userStatus">Not signed in</span>
+  <button class="neon-btn btn-small" id="loginBtn" onclick="openAuthModal()">Sign In</button>
+  <button class="neon-btn btn-small" id="logoutBtn" style="display:none" onclick="logout()">Sign Out</button>
+</div>
+
+<div class="video-grid" id="videoGrid">
+  <!-- Videos are injected here after loadVideos() runs -->
+</div>
+
+<!-- Video Player Modal -->
+<div id="player-modal">
+  <div class="player-container">
+    <button class="close-btn" onclick="closePlayer()">X</button>
+    <video id="my-video" class="video-js vjs-theme-city" controls preload="auto" width="640" height="360"></video>
+    <button class="btn-download" onclick="handleDownload()">Download Video ($5/Month)</button>
+  </div>
+</div>
+
+<!-- Auth Modal -->
+<div id="auth-modal">
+  <div class="auth-box">
+    <button class="close-btn" onclick="closeAuthModal()">X</button>
+    <h3 id="authTitle" style="color:var(--neon-blue)">Sign In</h3>
+    <input type="email" id="authEmail" placeholder="Email" />
+    <input type="password" id="authPassword" placeholder="Password" />
+    <div id="authError"></div>
+    <button onclick="submitAuth()">Continue</button>
+    <div class="auth-toggle" id="authToggleText" onclick="toggleAuthMode()">
+      Need an account? Sign up
+    </div>
+  </div>
+</div>
+
+<!-- Video.js core -->
+<script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+<!-- videojs-contrib-ads: manages ad breaks / pause-on-ad state for video.js -->
+<script src="https://cdn.jsdelivr.net/npm/videojs-contrib-ads@7.5.0/dist/videojs.ads.min.js"></script>
+<!-- videojs-vast-vpaid: plays a standard VAST/VPAID tag (works with Hilltop Ads or any VAST-compliant network) -->
+<script src="https://cdn.jsdelivr.net/npm/videojs-vast-vpaid@2.13.0/bin/videojs_vast_vpaid.min.js"></script>
+
+<script>
+/* ============================================================
+   1. FIREBASE CONFIG
+   Replace with your real project values from the Firebase console.
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyCS-W5F2VAf67iNwzSd5mgWzPE7imfR18k",
+  authDomain: "all-video-shot-clips.firebaseapp.com",
+  projectId: "all-video-shot-clips",
+  storageBucket: "all-video-shot-clips.firebasestorage.app",
+  messagingSenderId: "713272273659",
+  appId: "1:713272273659:web:ac202b4606868a0b129e5e",
+  measurementId: "G-PKL35K8P4J"
+};
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+const analytics = firebase.analytics();
+
+/* ============================================================
+   2. HILLTOP ADS VAST TAG
+   Paste the VAST tag URL from your Hilltop Ads publisher dashboard.
+   ============================================================ */
+const HILLTOP_VAST_TAG_URL = "https://YOUR-HILLTOP-VAST-TAG-URL-HERE";
+
+/* ============================================================
+   3. VIDEO SOURCE (third-party API, not Firebase Storage)
+   ============================================================ */
+const VIDEO_API_URL = "https://your-video-api.com/videos"; // <-- real endpoint goes here
+
+async function loadVideos() {
+  const grid = document.getElementById('videoGrid');
+  grid.innerHTML = '';
+
+  let apiVideos = [];
+  try {
+    const res = await fetch(VIDEO_API_URL);
+    if (!res.ok) throw new Error('bad response');
+    apiVideos = await res.json();
+  } catch (err) {
+    console.warn('Falling back to demo videos, could not reach VIDEO_API_URL:', err);
+    apiVideos = [
+      { id: 1, title: "Cyberpunk City View", url: "https://vjs.zencdn.net/v/oceans.mp4" },
+      { id: 2, title: "Neon Cars Racing", url: "https://vjs.zencdn.net/v/oceans.mp4" },
+      { id: 3, title: "Tech Review 2026", url: "https://vjs.zencdn.net/v/oceans.mp4" }
+    ];
+  }
+
+  // Also pull in any videos uploaded directly via upload.html (stored in
+  // Firestore's "videos" collection, files living in Vercel Blob).
+  let uploadedVideos = [];
+  try {
+    const snap = await db.collection('videos').orderBy('uploadedAt', 'desc').get();
+    uploadedVideos = snap.docs.map(doc => ({ id: doc.id, title: doc.data().title, url: doc.data().url }));
+  } catch (err) {
+    console.warn('Could not load uploaded videos from Firestore:', err);
+  }
+
+  const videos = [...uploadedVideos, ...apiVideos];
+
+  videos.forEach(video => {
+    const card = document.createElement('div');
+    card.className = 'video-card';
+    card.innerHTML = `
+      <h3>${escapeHtml(video.title)}</h3>
+      <button onclick="playVideo('${video.url}')">Watch Free</button>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* ============================================================
+   4. PLAYER + VAST/VPAID AD INTEGRATION
+   ============================================================ */
+let player;
+let currentVideoUrl = null;
+
+function playVideo(url) {
+  currentVideoUrl = url;
+  const modal = document.getElementById('player-modal');
+  modal.style.display = 'flex';
+
+  if (!player) {
+    player = videojs('my-video');
+
+    // Initialize the VAST plugin once. It will request and play the ad
+    // before content each time playAdBreak / the natural preroll fires.
+    player.vastClient({
+      adTagUrl: HILLTOP_VAST_TAG_URL,
+      playAdAlways: true,     // request a new ad every time a video is played
+      adCancelTimeout: 8000,  // ms to wait before giving up on the ad and playing content
+      verbosity: 0
+    });
+  }
+
+  player.src({ type: 'video/mp4', src: url });
+  player.play();
+}
+
+function closePlayer() {
+  document.getElementById('player-modal').style.display = 'none';
+  if (player) player.pause();
+}
+
+/* ============================================================
+   5. AUTH MODAL (Firebase Email/Password)
+   ============================================================ */
+let authMode = 'signin'; // or 'signup'
+
+function openAuthModal() {
+  document.getElementById('auth-modal').style.display = 'flex';
+}
+function closeAuthModal() {
+  document.getElementById('auth-modal').style.display = 'none';
+  document.getElementById('authError').textContent = '';
+}
+function toggleAuthMode() {
+  authMode = authMode === 'signin' ? 'signup' : 'signin';
+  document.getElementById('authTitle').textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up';
+  document.getElementById('authToggleText').textContent = authMode === 'signin'
+    ? 'Need an account? Sign up'
+    : 'Already have an account? Sign in';
+}
+
+async function submitAuth() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const errEl = document.getElementById('authError');
+  errEl.textContent = '';
+
+  try {
+    if (authMode === 'signin') {
+      await auth.signInWithEmailAndPassword(email, password);
+    } else {
+      const cred = await auth.createUserWithEmailAndPassword(email, password);
+      // Create a starter Firestore profile with no active subscription
+      await db.collection('users').doc(cred.user.uid).set({
+        email,
+        subscriptionActive: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    closeAuthModal();
+  } catch (err) {
+    errEl.textContent = err.message;
+  }
+}
+
+function logout() {
+  auth.signOut();
+}
+
+auth.onAuthStateChanged(user => {
+  const status = document.getElementById('userStatus');
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (user) {
+    status.textContent = user.email;
+    loginBtn.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+  } else {
+    status.textContent = 'Not signed in';
+    loginBtn.style.display = 'inline-block';
+    logoutBtn.style.display = 'none';
+  }
+});
+
+/* ============================================================
+   6. DOWNLOAD -> FIRESTORE SUBSCRIPTION CHECK -> STRIPE CHECKOUT
+   ============================================================ */
+async function handleDownload() {
+  const user = auth.currentUser;
+  if (!user) {
+    closePlayer();
+    openAuthModal();
+    return;
+  }
+
+  // Check subscription status stored in Firestore (kept in sync by the
+  // Stripe webhook — see api/webhook.js)
+  const doc = await db.collection('users').doc(user.uid).get();
+  const data = doc.exists ? doc.data() : {};
+
+  if (data.subscriptionActive === true) {
+    // Entitled: trigger the actual file download from your video API.
+    triggerDownload(currentVideoUrl);
+    return;
+  }
+
+  // Not subscribed: create a Stripe Checkout Session via our serverless
+  // function, authenticated with the user's Firebase ID token.
+  try {
+    const idToken = await user.getIdToken();
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${idToken}`
+      }
+    });
+    const { url, error } = await res.json();
+    if (error) throw new Error(error);
+    window.location.href = url; // redirect to Stripe Checkout
+  } catch (err) {
+    alert('Could not start checkout: ' + err.message);
+  }
+}
+
+function triggerDownload(url) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+/* ============================================================
+   7. INIT
+   ============================================================ */
+loadVideos();
+</script>
+</body>
+</html>
