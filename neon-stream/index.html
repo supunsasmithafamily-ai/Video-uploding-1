@@ -157,10 +157,7 @@
     justify-content: center; align-items: center;
   }
   
-  /* 
-    වෙනස් කරන ලද Auth Box එක 
-    (මෙහි url එකට අදාළව ඔබට අවශ්‍ය ඡායාරූපයේ ලින්ක් එක ඇතුළත් කරන්න) 
-  */
+  /* Background Image එකතු කරන ලද Auth Box එක */
   .auth-box {
     border: 1px solid var(--neon-blue);
     box-shadow: 0 0 20px var(--neon-blue);
@@ -179,7 +176,7 @@
     width: 100%;
     padding: 10px;
     margin-bottom: 12px;
-    background: rgba(0, 0, 0, 0.7); /* පසුබිම පෙනෙන පරිදි කළු පැහැය මඳක් අඩු කර ඇත */
+    background: rgba(0, 0, 0, 0.7);
     border: 1px solid var(--neon-pink);
     color: #fff;
     border-radius: 6px;
@@ -336,7 +333,6 @@ async function uploadNewVideo() {
     statusEl.style.color = "#0f0";
     statusEl.innerText = "සාර්ථකව අප්ලෝඩ් කරන ලදී!";
     
-    // Clear inputs and reload videos
     document.getElementById('new-video-title').value = '';
     document.getElementById('new-video-url').value = '';
     loadVideos();
@@ -421,6 +417,7 @@ async function submitAuth() {
 
 function logout() { auth.signOut(); }
 
+/* වෙබ් සයිට් එකට පිවිසි විගස ලොගින් පරීක්ෂා කර, නැතහොත් ස්වයංක්‍රීයව ලොගින් බොක්ස් එක පෙන්වීම */
 auth.onAuthStateChanged(user => {
   const status = document.getElementById('userStatus');
   const loginBtn = document.getElementById('loginBtn');
@@ -432,7 +429,9 @@ auth.onAuthStateChanged(user => {
     loginBtn.style.display = 'none';
     logoutBtn.style.display = 'inline-block';
     
-    // Check if the logged-in user is the Admin
+    // ලොග් වූ පසු ස්වයංක්‍රීයව ලොගින් බොක්ස් එක වැසීම
+    closeAuthModal(); 
+    
     if (user.email === ADMIN_EMAIL) {
       adminUploadSection.style.display = 'block';
     } else {
@@ -443,6 +442,9 @@ auth.onAuthStateChanged(user => {
     loginBtn.style.display = 'inline-block';
     logoutBtn.style.display = 'none';
     adminUploadSection.style.display = 'none';
+    
+    // ලොග් වී නොමැති නම් පිටුවට පැමිණි විගස ලොගින් බොක්ස් එක පෙන්වීම
+    openAuthModal();
   }
 });
 
