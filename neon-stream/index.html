@@ -1,189 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Start cookieyes banner --> <script id="cookieyes" type="text/javascript" src="https://cdn-cookieyes.com/client_data/194b711636c44c8e99d99f71fa93f9f5/script.js"></script> <!-- End cookieyes banner -->
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="77ae6cf28d0bfb4da0ec4da96c701d685cc8feb3" content="77ae6cf28d0bfb4da0ec4da96c701d685cc8feb3" />
-<meta name="google-adsense-account" content="ca-pub-9285111351602664">
-<title>Neon Stream | Video Platform</title>
+  <!-- Start cookieyes banner --> 
+  <script id="cookieyes" type="text/javascript" src="https://cdn-cookieyes.com/client_data/194b711636c44c8e99d99f71fa93f9f5/script.js"></script> 
+  <!-- End cookieyes banner -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="77ae6cf28d0bfb4da0ec4da96c701d685cc8feb3" content="77ae6cf28d0bfb4da0ec4da96c701d685cc8feb3" />
+  <meta name="google-adsense-account" content="ca-pub-9285111351602664">
+  <title>Neon Stream | Video Platform</title>
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics-compat.js"></script>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics-compat.js"></script>
 
-<!-- Video.js -->
-<link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+  <!-- Video.js -->
+  <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
 
-<style>
-  :root {
-    --neon-blue: #00f3ff;
-    --neon-pink: #ff00ff;
-    --bg-dark: #09090b;
-  }
-  * { box-sizing: border-box; }
-  body {
-    background-color: var(--bg-dark);
-    color: #fff;
-    font-family: 'Segoe UI', sans-serif;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  h1 {
-    color: #fff;
-    text-shadow: 0 0 5px var(--neon-blue), 0 0 15px var(--neon-blue), 0 0 30px var(--neon-blue);
-    margin-bottom: 10px;
-    font-size: 2.5rem;
-    letter-spacing: 2px;
-  }
-  #authBar {
-    width: 100%;
-    max-width: 1200px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-  #authBar span { align-self: center; color: var(--neon-blue); margin-right: 10px; font-size: .9rem; }
-  
-  /* Admin Upload Section */
-  #admin-upload-section {
-    display: none;
-    width: 100%;
-    max-width: 1200px;
-    background: #111;
-    border: 1px solid var(--neon-blue);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 30px;
-    box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
-  }
-  #admin-upload-section input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    background: #000;
-    border: 1px solid var(--neon-blue);
-    color: #fff;
-    border-radius: 6px;
-  }
+  <style>
+    :root {
+      --neon-blue: #00f3ff;
+      --neon-pink: #ff00ff;
+      --bg-dark: #09090b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      background-color: var(--bg-dark);
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    h1 {
+      color: #fff;
+      text-shadow: 0 0 5px var(--neon-blue), 0 0 15px var(--neon-blue), 0 0 30px var(--neon-blue);
+      margin-bottom: 10px;
+      font-size: 2.5rem;
+      letter-spacing: 2px;
+    }
+    #authBar {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    #authBar span { align-self: center; color: var(--neon-blue); margin-right: 10px; font-size: .9rem; }
+    
+    /* Admin Upload Section */
+    #admin-upload-section {
+      display: none;
+      width: 100%;
+      max-width: 1200px;
+      background: #111;
+      border: 1px solid var(--neon-blue);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+    }
+    #admin-upload-section input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      background: #000;
+      border: 1px solid var(--neon-blue);
+      color: #fff;
+      border-radius: 6px;
+    }
 
-  .video-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px;
-    width: 100%;
-    max-width: 1200px;
-  }
-  .video-card {
-    background: #111;
-    border: 1px solid var(--neon-pink);
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 0 10px rgba(255, 0, 255, 0.2), inset 0 0 10px rgba(255, 0, 255, 0.1);
-    transition: all 0.3s ease-in-out;
-  }
-  .video-card:hover {
-    box-shadow: 0 0 20px var(--neon-pink), inset 0 0 15px var(--neon-pink);
-    transform: translateY(-5px);
-  }
-  button, .neon-btn {
-    background: transparent;
-    color: var(--neon-blue);
-    border: 2px solid var(--neon-blue);
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    text-transform: uppercase;
-    box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
-    transition: 0.3s;
-    margin-top: 10px;
-    width: 100%;
-    font-size: .85rem;
-  }
-  button:hover { background: var(--neon-blue); color: var(--bg-dark); box-shadow: 0 0 20px var(--neon-blue); }
-  .btn-download { border-color: var(--neon-pink); color: var(--neon-pink); box-shadow: 0 0 10px rgba(255, 0, 255, 0.3); }
-  .btn-download:hover { background: var(--neon-pink); color: var(--bg-dark); box-shadow: 0 0 20px var(--neon-pink); }
-  .btn-small { width: auto; padding: 8px 14px; margin-top: 0; }
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      width: 100%;
+      max-width: 1200px;
+      flex: 1;
+    }
+    .video-card {
+      background: #111;
+      border: 1px solid var(--neon-pink);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(255, 0, 255, 0.2), inset 0 0 10px rgba(255, 0, 255, 0.1);
+      transition: all 0.3s ease-in-out;
+    }
+    .video-card:hover {
+      box-shadow: 0 0 20px var(--neon-pink), inset 0 0 15px var(--neon-pink);
+      transform: translateY(-5px);
+    }
+    button, .neon-btn {
+      background: transparent;
+      color: var(--neon-blue);
+      border: 2px solid var(--neon-blue);
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      text-transform: uppercase;
+      box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+      transition: 0.3s;
+      margin-top: 10px;
+      width: 100%;
+      font-size: .85rem;
+    }
+    button:hover { background: var(--neon-blue); color: var(--bg-dark); box-shadow: 0 0 20px var(--neon-blue); }
+    .btn-download { border-color: var(--neon-pink); color: var(--neon-pink); box-shadow: 0 0 10px rgba(255, 0, 255, 0.3); }
+    .btn-download:hover { background: var(--neon-pink); color: var(--bg-dark); box-shadow: 0 0 20px var(--neon-pink); }
+    .btn-small { width: auto; padding: 8px 14px; margin-top: 0; }
 
-  #player-modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-  }
-  .player-container {
-    border: 2px solid var(--neon-blue);
-    box-shadow: 0 0 30px var(--neon-blue);
-    padding: 10px;
-    border-radius: 10px;
-    background: #000;
-    position: relative;
-    width: 90vw;
-    max-width: 720px;
-  }
-  .close-btn {
-    position: absolute;
-    top: -20px; right: -20px;
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    background: red;
-    color: white;
-    border: none;
-    box-shadow: 0 0 15px red;
-    cursor: pointer;
-    z-index: 1001;
-    margin: 0;
-  }
+    #player-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    .player-container {
+      border: 2px solid var(--neon-blue);
+      box-shadow: 0 0 30px var(--neon-blue);
+      padding: 10px;
+      border-radius: 10px;
+      background: #000;
+      position: relative;
+      width: 90vw;
+      max-width: 720px;
+    }
+    .close-btn {
+      position: absolute;
+      top: -20px; right: -20px;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: red;
+      color: white;
+      border: none;
+      box-shadow: 0 0 15px red;
+      cursor: pointer;
+      z-index: 1001;
+      margin: 0;
+    }
 
-  /* Auth modal */
-  #auth-modal {
-    display: none;
-    position: fixed; top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.9);
-    z-index: 1100;
-    justify-content: center; align-items: center;
-  }
-  
-  /* Background Image එකතු කරන ලද Auth Box එක */
-  .auth-box {
-    border: 1px solid var(--neon-blue);
-    box-shadow: 0 0 20px var(--neon-blue);
-    padding: 30px;
-    border-radius: 12px;
-    width: 90vw;
-    max-width: 360px;
-    position: relative;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=600&auto=format&fit=crop');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
-  
-  .auth-box input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 12px;
-    background: rgba(0, 0, 0, 0.7);
-    border: 1px solid var(--neon-pink);
-    color: #fff;
-    border-radius: 6px;
-  }
-  .auth-toggle { font-size: .8rem; text-align: center; margin-top: 10px; cursor: pointer; color: var(--neon-blue); }
-  #authError { color: var(--neon-pink); font-size: .8rem; min-height: 1em; }
-</style>
+    /* Auth modal */
+    #auth-modal {
+      display: none;
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 1100;
+      justify-content: center; align-items: center;
+    }
+    
+    .auth-box {
+      border: 1px solid var(--neon-blue);
+      box-shadow: 0 0 20px var(--neon-blue);
+      padding: 30px;
+      border-radius: 12px;
+      width: 90vw;
+      max-width: 360px;
+      position: relative;
+      background-image: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=600&auto=format&fit=crop');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    
+    .auth-box input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid var(--neon-pink);
+      color: #fff;
+      border-radius: 6px;
+    }
+    .auth-toggle { font-size: .8rem; text-align: center; margin-top: 10px; cursor: pointer; color: var(--neon-blue); }
+    #authError { color: var(--neon-pink); font-size: .8rem; min-height: 1em; }
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #888;
+      border-top: 1px solid #222;
+      padding-top: 20px;
+      width: 100%;
+      max-width: 1200px;
+    }
+    footer a { color: var(--neon-blue); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
 </head>
 <body>
 
@@ -199,8 +215,8 @@
 <div id="admin-upload-section">
   <h3 style="color: var(--neon-blue); margin-top: 0;">Upload New Video (Admin)</h3>
   <input type="text" id="new-video-title" placeholder="Enter Video Title">
-  <input type="text" id="new-video-url" placeholder="Enter Direct Video URL (.mp4 API Link)">
-  <button onclick="uploadNewVideo()" class="neon-btn" style="width: auto;">Add Video to Database</button>
+  <input type="file" id="new-video-file" accept="video/*">
+  <button onclick="uploadNewVideo()" class="neon-btn" style="width: auto;">Upload to Cloudflare</button>
   <div id="uploadStatus" style="margin-top: 10px; font-size: 0.9rem;"></div>
 </div>
 
@@ -232,14 +248,16 @@
   </div>
 </div>
 
+<footer>
+  <p>&copy; 2026 Neon Stream. All rights reserved. | <a href="privacy-policy.html">Privacy Policy</a></p>
+</footer>
+
 <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-ads@7.5.0/dist/videojs.ads.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/videojs-vast-vpaid@2.13.0/bin/videojs_vast_vpaid.min.js"></script>
 
 <script>
-/* ============================================================
-   1. FIREBASE CONFIG
-   ============================================================ */
+/* FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyCS-W5F2VAf67iNwzSd5mgWzPE7imfR18k",
   authDomain: "all-video-shot-clips.firebaseapp.com",
@@ -254,10 +272,8 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 const analytics = firebase.analytics();
 
-/* ============================================================
-   ADMIN EMAIL SETUP (ඔබගේ ඊමේල් එක මෙහි ඇතුළත් කරන්න)
-   ============================================================ */
-const ADMIN_EMAIL = "supunsasmithafamily@gmail.com"; 
+/* ADMIN EMAIL SETUP (ඔබගේ ඊමේල් එක දමන්න) */
+const ADMIN_EMAIL = "your-email@gmail.com"; 
 
 const HILLTOP_VAST_TAG_URL = "https://unfolded-uncle.com/dJmoFOzNd.GRNnv/ZxGdUo/SermR9puYZyUclHkNP/TUcPyDN/TkAfzQOTDxkOtONiz-IH1TMLD/Ma5OMhwN";
 const VIDEO_API_URL = "https://your-video-api.com/videos"; 
@@ -306,47 +322,64 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-/* ============================================================
-   ADMIN UPLOAD FUNCTION
-   ============================================================ */
+/* ADMIN UPLOAD FUNCTION */
 async function uploadNewVideo() {
   const title = document.getElementById('new-video-title').value.trim();
-  const url = document.getElementById('new-video-url').value.trim();
+  const fileInput = document.getElementById('new-video-file');
   const statusEl = document.getElementById('uploadStatus');
 
-  if (!title || !url) {
+  if (!title || fileInput.files.length === 0) {
     statusEl.style.color = "var(--neon-pink)";
-    statusEl.innerText = "කරුණාකර Title සහ URL එක ඇතුළත් කරන්න.";
+    statusEl.innerText = "කරුණාකර Title එකක් සහ වීඩියෝ ෆයිල් එකක් තෝරන්න.";
     return;
   }
 
+  const file = fileInput.files[0];
+  const formData = new FormData();
+  formData.append('video', file);
+  formData.append('title', title);
+
   try {
     statusEl.style.color = "var(--neon-blue)";
-    statusEl.innerText = "Uploading...";
+    statusEl.innerText = "Cloudflare වෙත අප්ලෝඩ් වෙමින් පවතී...";
+
+    const YOUR_API_URL = "/api/upload"; 
+
+    const response = await fetch(YOUR_API_URL, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error("අප්ලෝඩ් කිරීම අසාර්ථකයි! Server Error එකක් පැමිණියා.");
+    }
+
+    const data = await response.json();
+    const videoUrl = data.url;
+
+    statusEl.innerText = "දත්ත ගබඩාවට යාවත්කාලීන වෙමින් පවතී...";
 
     await db.collection('videos').add({
       title: title,
-      url: url,
+      url: videoUrl,
       uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
     statusEl.style.color = "#0f0";
-    statusEl.innerText = "සාර්ථකව අප්ලෝඩ් කරන ලදී!";
+    statusEl.innerText = "වීඩියෝව සාර්ථකව අප්ලෝඩ් කර ගබඩා කරන ලදී!";
     
     document.getElementById('new-video-title').value = '';
-    document.getElementById('new-video-url').value = '';
+    document.getElementById('new-video-file').value = '';
     loadVideos();
 
-    setTimeout(() => { statusEl.innerText = ''; }, 3000);
+    setTimeout(() => { statusEl.innerText = ''; }, 5000);
   } catch (error) {
     statusEl.style.color = "var(--neon-pink)";
     statusEl.innerText = "Error: " + error.message;
   }
 }
 
-/* ============================================================
-   PLAYER + VAST/VPAID AD INTEGRATION
-   ============================================================ */
+/* PLAYER & ADS */
 let player;
 let currentVideoUrl = null;
 
@@ -374,9 +407,7 @@ function closePlayer() {
   if (player) player.pause();
 }
 
-/* ============================================================
-   AUTH MODAL & AUTH STATE
-   ============================================================ */
+/* AUTH MODAL & STATE */
 let authMode = 'signin';
 
 function openAuthModal() { document.getElementById('auth-modal').style.display = 'flex'; }
@@ -417,7 +448,6 @@ async function submitAuth() {
 
 function logout() { auth.signOut(); }
 
-/* වෙබ් සයිට් එකට පිවිසි විගස ලොගින් පරීක්ෂා කර, නැතහොත් ස්වයංක්‍රීයව ලොගින් බොක්ස් එක පෙන්වීම */
 auth.onAuthStateChanged(user => {
   const status = document.getElementById('userStatus');
   const loginBtn = document.getElementById('loginBtn');
@@ -428,8 +458,6 @@ auth.onAuthStateChanged(user => {
     status.textContent = user.email;
     loginBtn.style.display = 'none';
     logoutBtn.style.display = 'inline-block';
-    
-    // ලොග් වූ පසු ස්වයංක්‍රීයව ලොගින් බොක්ස් එක වැසීම
     closeAuthModal(); 
     
     if (user.email === ADMIN_EMAIL) {
@@ -442,15 +470,11 @@ auth.onAuthStateChanged(user => {
     loginBtn.style.display = 'inline-block';
     logoutBtn.style.display = 'none';
     adminUploadSection.style.display = 'none';
-    
-    // ලොග් වී නොමැති නම් පිටුවට පැමිණි විගස ලොගින් බොක්ස් එක පෙන්වීම
     openAuthModal();
   }
 });
 
-/* ============================================================
-   DOWNLOAD -> SUBSCRIPTION CHECK
-   ============================================================ */
+/* DOWNLOAD HANDLER */
 async function handleDownload() {
   const user = auth.currentUser;
   if (!user) {
@@ -495,6 +519,5 @@ function triggerDownload(url) {
 
 loadVideos();
 </script>
-<script id="cky-privacy-policy" type="text/javascript" src="https://cdn-cookieyes.com/client_data/194b711636c44c8e99d99f71fa93f9f5/privacy-policy/script.js"></script>
 </body>
 </html>
