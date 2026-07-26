@@ -8,7 +8,7 @@
 <meta name="google-adsense-account" content="ca-pub-9285111351602664">
 <title>Neon Stream | Video Platform</title>
 
-<!-- Firebase SDKs (compat build, simplest for a single-file app) -->
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -47,10 +47,33 @@
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
   }
   #authBar span { align-self: center; color: var(--neon-blue); margin-right: 10px; font-size: .9rem; }
+  
+  /* Admin Upload Section */
+  #admin-upload-section {
+    display: none;
+    width: 100%;
+    max-width: 1200px;
+    background: #111;
+    border: 1px solid var(--neon-blue);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+  }
+  #admin-upload-section input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    background: #000;
+    border: 1px solid var(--neon-blue);
+    color: #fff;
+    border-radius: 6px;
+  }
+
   .video-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -133,8 +156,12 @@
     z-index: 1100;
     justify-content: center; align-items: center;
   }
+  
+  /* 
+    වෙනස් කරන ලද Auth Box එක 
+    (මෙහි url එකට අදාළව ඔබට අවශ්‍ය ඡායාරූපයේ ලින්ක් එක ඇතුළත් කරන්න) 
+  */
   .auth-box {
-    background: #111;
     border: 1px solid var(--neon-blue);
     box-shadow: 0 0 20px var(--neon-blue);
     padding: 30px;
@@ -142,12 +169,17 @@
     width: 90vw;
     max-width: 360px;
     position: relative;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=600&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
   }
+  
   .auth-box input {
     width: 100%;
     padding: 10px;
     margin-bottom: 12px;
-    background: #000;
+    background: rgba(0, 0, 0, 0.7); /* පසුබිම පෙනෙන පරිදි කළු පැහැය මඳක් අඩු කර ඇත */
     border: 1px solid var(--neon-pink);
     color: #fff;
     border-radius: 6px;
@@ -166,8 +198,17 @@
   <button class="neon-btn btn-small" id="logoutBtn" style="display:none" onclick="logout()">Sign Out</button>
 </div>
 
+<!-- Admin Upload Section -->
+<div id="admin-upload-section">
+  <h3 style="color: var(--neon-blue); margin-top: 0;">Upload New Video (Admin)</h3>
+  <input type="text" id="new-video-title" placeholder="Enter Video Title">
+  <input type="text" id="new-video-url" placeholder="Enter Direct Video URL (.mp4 API Link)">
+  <button onclick="uploadNewVideo()" class="neon-btn" style="width: auto;">Add Video to Database</button>
+  <div id="uploadStatus" style="margin-top: 10px; font-size: 0.9rem;"></div>
+</div>
+
 <div class="video-grid" id="videoGrid">
-  <!-- Videos are injected here after loadVideos() runs -->
+  <!-- Videos are injected here -->
 </div>
 
 <!-- Video Player Modal -->
@@ -194,17 +235,13 @@
   </div>
 </div>
 
-<!-- Video.js core -->
 <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
-<!-- videojs-contrib-ads: manages ad breaks / pause-on-ad state for video.js -->
 <script src="https://cdn.jsdelivr.net/npm/videojs-contrib-ads@7.5.0/dist/videojs.ads.min.js"></script>
-<!-- videojs-vast-vpaid: plays a standard VAST/VPAID tag (works with Hilltop Ads or any VAST-compliant network) -->
 <script src="https://cdn.jsdelivr.net/npm/videojs-vast-vpaid@2.13.0/bin/videojs_vast_vpaid.min.js"></script>
 
 <script>
 /* ============================================================
    1. FIREBASE CONFIG
-   Replace with your real project values from the Firebase console.
    ============================================================ */
 const firebaseConfig = {
   apiKey: "AIzaSyCS-W5F2VAf67iNwzSd5mgWzPE7imfR18k",
@@ -221,15 +258,12 @@ const auth = firebase.auth();
 const analytics = firebase.analytics();
 
 /* ============================================================
-   2. HILLTOP ADS VAST TAG
-   Paste the VAST tag URL from your Hilltop Ads publisher dashboard.
+   ADMIN EMAIL SETUP (ඔබගේ ඊමේල් එක මෙහි ඇතුළත් කරන්න)
    ============================================================ */
-const HILLTOP_VAST_TAG_URL = "https://unfolded-uncle.com/dJmoFOzNd.GRNnv/ZxGdUo/SermR9puYZyUclHkNP/TUcPyDN/TkAfzQOTDxkOtONiz-IH1TMLD/Ma5OMhwN";
+const ADMIN_EMAIL = "your-email@gmail.com"; 
 
-/* ============================================================
-   3. VIDEO SOURCE (third-party API, not Firebase Storage)
-   ============================================================ */
-const VIDEO_API_URL = "https://your-video-api.com/videos"; // <-- real endpoint goes here
+const HILLTOP_VAST_TAG_URL = "https://unfolded-uncle.com/dJmoFOzNd.GRNnv/ZxGdUo/SermR9puYZyUclHkNP/TUcPyDN/TkAfzQOTDxkOtONiz-IH1TMLD/Ma5OMhwN";
+const VIDEO_API_URL = "https://your-video-api.com/videos"; 
 
 async function loadVideos() {
   const grid = document.getElementById('videoGrid');
@@ -241,16 +275,13 @@ async function loadVideos() {
     if (!res.ok) throw new Error('bad response');
     apiVideos = await res.json();
   } catch (err) {
-    console.warn('Falling back to demo videos, could not reach VIDEO_API_URL:', err);
+    console.warn('Falling back to demo videos');
     apiVideos = [
       { id: 1, title: "Cyberpunk City View", url: "https://vjs.zencdn.net/v/oceans.mp4" },
-      { id: 2, title: "Neon Cars Racing", url: "https://vjs.zencdn.net/v/oceans.mp4" },
-      { id: 3, title: "Tech Review 2026", url: "https://vjs.zencdn.net/v/oceans.mp4" }
+      { id: 2, title: "Neon Cars Racing", url: "https://vjs.zencdn.net/v/oceans.mp4" }
     ];
   }
 
-  // Also pull in any videos uploaded directly via upload.html (stored in
-  // Firestore's "videos" collection, files living in Vercel Blob).
   let uploadedVideos = [];
   try {
     const snap = await db.collection('videos').orderBy('uploadedAt', 'desc').get();
@@ -279,7 +310,46 @@ function escapeHtml(str) {
 }
 
 /* ============================================================
-   4. PLAYER + VAST/VPAID AD INTEGRATION
+   ADMIN UPLOAD FUNCTION
+   ============================================================ */
+async function uploadNewVideo() {
+  const title = document.getElementById('new-video-title').value.trim();
+  const url = document.getElementById('new-video-url').value.trim();
+  const statusEl = document.getElementById('uploadStatus');
+
+  if (!title || !url) {
+    statusEl.style.color = "var(--neon-pink)";
+    statusEl.innerText = "කරුණාකර Title සහ URL එක ඇතුළත් කරන්න.";
+    return;
+  }
+
+  try {
+    statusEl.style.color = "var(--neon-blue)";
+    statusEl.innerText = "Uploading...";
+
+    await db.collection('videos').add({
+      title: title,
+      url: url,
+      uploadedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    statusEl.style.color = "#0f0";
+    statusEl.innerText = "සාර්ථකව අප්ලෝඩ් කරන ලදී!";
+    
+    // Clear inputs and reload videos
+    document.getElementById('new-video-title').value = '';
+    document.getElementById('new-video-url').value = '';
+    loadVideos();
+
+    setTimeout(() => { statusEl.innerText = ''; }, 3000);
+  } catch (error) {
+    statusEl.style.color = "var(--neon-pink)";
+    statusEl.innerText = "Error: " + error.message;
+  }
+}
+
+/* ============================================================
+   PLAYER + VAST/VPAID AD INTEGRATION
    ============================================================ */
 let player;
 let currentVideoUrl = null;
@@ -291,13 +361,10 @@ function playVideo(url) {
 
   if (!player) {
     player = videojs('my-video');
-
-    // Initialize the VAST plugin once. It will request and play the ad
-    // before content each time playAdBreak / the natural preroll fires.
     player.vastClient({
       adTagUrl: HILLTOP_VAST_TAG_URL,
-      playAdAlways: true,     // request a new ad every time a video is played
-      adCancelTimeout: 8000,  // ms to wait before giving up on the ad and playing content
+      playAdAlways: true,
+      adCancelTimeout: 8000,
       verbosity: 0
     });
   }
@@ -312,14 +379,12 @@ function closePlayer() {
 }
 
 /* ============================================================
-   5. AUTH MODAL (Firebase Email/Password)
+   AUTH MODAL & AUTH STATE
    ============================================================ */
-let authMode = 'signin'; // or 'signup'
+let authMode = 'signin';
 
-function openAuthModal() {
-  document.getElementById('auth-modal').style.display = 'flex';
-}
-function closeAuthModal() {
+function openAuthModal() { document.getElementById('auth-modal').style.display = 'flex'; }
+function closeAuthModal() { 
   document.getElementById('auth-modal').style.display = 'none';
   document.getElementById('authError').textContent = '';
 }
@@ -342,7 +407,6 @@ async function submitAuth() {
       await auth.signInWithEmailAndPassword(email, password);
     } else {
       const cred = await auth.createUserWithEmailAndPassword(email, password);
-      // Create a starter Firestore profile with no active subscription
       await db.collection('users').doc(cred.user.uid).set({
         email,
         subscriptionActive: false,
@@ -355,27 +419,35 @@ async function submitAuth() {
   }
 }
 
-function logout() {
-  auth.signOut();
-}
+function logout() { auth.signOut(); }
 
 auth.onAuthStateChanged(user => {
   const status = document.getElementById('userStatus');
   const loginBtn = document.getElementById('loginBtn');
   const logoutBtn = document.getElementById('logoutBtn');
+  const adminUploadSection = document.getElementById('admin-upload-section');
+
   if (user) {
     status.textContent = user.email;
     loginBtn.style.display = 'none';
     logoutBtn.style.display = 'inline-block';
+    
+    // Check if the logged-in user is the Admin
+    if (user.email === ADMIN_EMAIL) {
+      adminUploadSection.style.display = 'block';
+    } else {
+      adminUploadSection.style.display = 'none';
+    }
   } else {
     status.textContent = 'Not signed in';
     loginBtn.style.display = 'inline-block';
     logoutBtn.style.display = 'none';
+    adminUploadSection.style.display = 'none';
   }
 });
 
 /* ============================================================
-   6. DOWNLOAD -> FIRESTORE SUBSCRIPTION CHECK -> STRIPE CHECKOUT
+   DOWNLOAD -> SUBSCRIPTION CHECK
    ============================================================ */
 async function handleDownload() {
   const user = auth.currentUser;
@@ -385,19 +457,14 @@ async function handleDownload() {
     return;
   }
 
-  // Check subscription status stored in Firestore (kept in sync by the
-  // Stripe webhook — see api/webhook.js)
   const doc = await db.collection('users').doc(user.uid).get();
   const data = doc.exists ? doc.data() : {};
 
   if (data.subscriptionActive === true) {
-    // Entitled: trigger the actual file download from your video API.
     triggerDownload(currentVideoUrl);
     return;
   }
 
-  // Not subscribed: create a Stripe Checkout Session via our serverless
-  // function, authenticated with the user's Firebase ID token.
   try {
     const idToken = await user.getIdToken();
     const res = await fetch('/api/checkout', {
@@ -409,9 +476,9 @@ async function handleDownload() {
     });
     const { url, error } = await res.json();
     if (error) throw new Error(error);
-    window.location.href = url; // redirect to Stripe Checkout
+    window.location.href = url;
   } catch (err) {
-    alert('Could not start checkout: ' + err.message);
+    alert('Could not start checkout. Make sure your API is deployed.');
   }
 }
 
@@ -424,13 +491,8 @@ function triggerDownload(url) {
   a.remove();
 }
 
-/* ============================================================
-   7. INIT
-   ============================================================ */
 loadVideos();
 </script>
-  <!-- Start CookieYes privacy policy -->
 <script id="cky-privacy-policy" type="text/javascript" src="https://cdn-cookieyes.com/client_data/194b711636c44c8e99d99f71fa93f9f5/privacy-policy/script.js"></script>
-<!-- End CookieYes privacy policy -->
 </body>
 </html>
